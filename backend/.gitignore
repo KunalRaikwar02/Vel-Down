@@ -1,0 +1,17 @@
+# Dependency folders
+node_modules/
+
+# Security & Secrets
+.env
+cookies.txt
+cookies.json
+
+# Logs and Junk
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*-player-script.js
+
+# OS related files
+.DS_Store
+Thumbs.db

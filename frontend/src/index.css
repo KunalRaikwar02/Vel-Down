@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-anton: "Anton", sans-serif;
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --color-luxe-gold: #d4af37;
+  --color-coffee: #1a120b;
+  --color-beige: #f4ece1;
+}
+
+:root {
+  /* --- Default: Coffee Theme Configuration --- */
+  --bg-primary: #1a120b;
+  --text-primary: #f4ece1;
+  --button-bg: #f4ece1;
+  --button-text: #1a120b;
+  --input-text: #f4ece1;
+  --nav-line: rgba(212, 175, 55, 0.2);
+  
+  /* Beige Scrollbar for Coffee Theme (for visibility) */
+  --scroll-bg: #1a120b;
+  --scroll-thumb: #f4ece1; 
+  --scroll-thumb-hover: #d4af37; /* Gold on hover */
+}
+
+.light-mode {
+  /* --- Switch: Beige Theme Configuration --- */
+  --bg-primary: #f4ece1;
+  --text-primary: #1a120b;
+  --button-bg: #1a120b;
+  --button-text: #f4ece1;
+  --input-text: #1a120b;
+  --nav-line: rgba(26, 18, 11, 0.1);
+  
+  /* Coffee Scrollbar for Beige Theme (for visibility) */
+  --scroll-bg: #f4ece1;
+  --scroll-thumb: #1a120b;
+  --scroll-thumb-hover: #3c2a21; /* Deep Coffee on hover */
+}
+
+/* 1. Layout Integrity: Prevent Horizontal Scrolling */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-jakarta);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.anton { font-family: var(--font-anton); }
+
+/* Enforce Pointer Cursor for Interactive Elements */
+button, a, [role="button"] { 
+  cursor: pointer !important; 
+}
+
+/* --- 2. DYNAMIC VERTICAL SCROLLBAR --- */
+
+::-webkit-scrollbar {
+  width: 10px; /* Sidebar width */
+  height: 0px; /* Horizontal bar removed */
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scroll-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  /* Contrast color based on current theme */
+  background: var(--scroll-thumb);
+  border-radius: 20px;
+  /* Adds padding between thumb and track using border-stroke */
+  border: 2px solid var(--scroll-bg);
+  opacity: 0.8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* 3. Utility to Hide Internal Component Scrollbars (Cleaner UI) */
+.custom-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.custom-scroll::-webkit-scrollbar {
+  display: none;
+}
