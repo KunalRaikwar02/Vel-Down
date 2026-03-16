@@ -1,67 +1,55 @@
-const ytDlp = require('yt-dlp-exec');
-const path = require('path');
-
-// Path to your cookies file for authenticated requests
-const cookiesPath = path.join(__dirname, '../cookies.txt');
+const ytdl = require("@distube/ytdl-core");
 
 /**
  * Retrieves metadata for a given YouTube URL
  */
 exports.fetchVideoInfo = async (url) => {
     try {
-        const output = await ytDlp(url, {
-            dumpSingleJson: true,
-            noWarnings: true,
-            noCheckCertificates: true,
-            cookies: cookiesPath // Using cookies to prevent bot detection
-        });
-
+        // Fetching info directly using the library (No binary needed)
+        const info = await ytdl.getInfo(url);
+        
         return {
-            title: output.title,
-            author: output.uploader,
-            length: output.duration,
-            thumbnail: output.thumbnail,
-            viewCount: output.view_count
+            title: info.videoDetails.title,
+            author: info.videoDetails.author.name,
+            length: info.videoDetails.lengthSeconds,
+            thumbnail: info.videoDetails.thumbnails[info.videoDetails.thumbnails.length - 1].url,
+            viewCount: info.videoDetails.viewCount
         };
     } catch (err) {
-        throw new Error("yt-dlp Metadata Error: " + err.message);
+        // Cleaning up error message for cleaner frontend display
+        throw new Error("Metadata Fetch Failed: " + err.message);
     }
 };
 
 /**
- * Creates a readable stream for the video using yt-dlp stdout
+ * Creates a readable stream for the video
  */
 exports.downloadStream = (url, itag) => {
-    // '-' redirects the output to stdout for streaming
-    const process = ytDlp.exec(url, {
-        format: itag ? `${itag}+bestaudio/best` : 'best',
-        output: '-',
-        cookies: cookiesPath
-    }, { stdio: ['ignore', 'pipe', 'ignore'] });
-
-    return process.stdout;
+    // Directly returns the stream from ytdl-core
+    return ytdl(url, {
+        quality: itag || 'highest',
+        filter: 'videoandaudio' // Best for simple MP4 downloads
+    });
 };
 
 /**
- * Filters and returns available video qualities with file sizes
+ * Filters and returns available video qualities
  */
 exports.fetchVideoQualities = async (url) => {
     try {
-        const output = await ytDlp(url, {
-            dumpSingleJson: true,
-            cookies: cookiesPath
-        });
+        const info = await ytdl.getInfo(url);
         
-        // Filter formats that contain both video and audio for direct playback
-        return output.formats
-            .filter(f => f.vcodec !== 'none' && f.acodec !== 'none')
-            .map(f => ({
-                quality: f.format_note || f.resolution,
-                itag: f.format_id,
-                container: f.ext,
-                size: f.filesize ? (f.filesize / (1024 * 1024)).toFixed(2) + " MB" : "Unknown"
-            }));
+        // Filtering formats that have both video and audio for ease of use
+        const formats = ytdl.filterFormats(info.formats, 'videoandaudio');
+        
+        return formats.map(f => ({
+            quality: f.qualityLabel || f.container,
+            itag: f.itag,
+            container: f.container,
+            // Approximating size if available
+            size: f.contentLength ? (parseInt(f.contentLength) / (1024 * 1024)).toFixed(2) + " MB" : "Unknown"
+        }));
     } catch (err) {
-        throw new Error("yt-dlp Format Error: " + err.message);
+        throw new Error("Qualities Fetch Failed: " + err.message);
     }
 };
