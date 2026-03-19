@@ -1,104 +1,77 @@
-const { fetchVideoInfo, downloadStream, fetchVideoQualities } = require("../utils/youtubeService");
+const ytdl = require("@distube/ytdl-core");
+require('dotenv').config();
 
 /**
- * Controller to fetch basic video metadata.
- * Validates the URL and returns title, thumbnail, and other details.
+ * Fetch YouTube request options including cookies and user agent from environment variables.
+ */
+const getOptions = () => ({
+    requestOptions: {
+        headers: {
+            'cookie': process.env.YT_COOKIE,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        }
+    }
+});
+
+/**
+ * Retrieves basic video information: title, thumbnail, and author name.
  */
 exports.getVideoInfo = async (req, res) => {
     try {
-        let { url } = req.query;
-        if (!url) {
-            return res.status(400).json({ success: false, message: "URL is required" });
-        }
-
-        const decodedUrl = decodeURIComponent(url);
-
-        // Security Check: Ensure the URL belongs to YouTube
-        if (!decodedUrl.includes("youtube.com") && !decodedUrl.includes("youtu.be")) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Security Error: Only valid YouTube links are permitted." 
-            });
-        }
-
-        const data = await fetchVideoInfo(decodedUrl);
-        res.json({ success: true, data });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        const info = await ytdl.getInfo(req.query.url, getOptions());
+        res.json({ 
+            success: true, 
+            data: { 
+                title: info.videoDetails.title, 
+                thumbnail: info.videoDetails.thumbnails.pop().url, 
+                author: info.videoDetails.author.name 
+            } 
+        });
+    } catch (error) { 
+        res.status(500).json({ success: false }); 
     }
 };
 
 /**
- * Controller to fetch available video qualities.
- * Returns a list of formats that include both video and audio.
+ * Filters and retrieves available video+audio formats with metadata like itag, quality, and size.
  */
-exports.getVideoQualities = async (req, res) => {
+exports.getQualities = async (req, res) => {
     try {
-        let { url } = req.query;
-        if (!url) {
-            return res.status(400).json({ success: false, message: "URL is required" });
-        }
-
-        const decodedUrl = decodeURIComponent(url);
-
-        // Security Check: Validate YouTube domain
-        if (!decodedUrl.includes("youtube.com") && !decodedUrl.includes("youtu.be")) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Security Error: Invalid source domain." 
-            });
-        }
-
-        const qualities = await fetchVideoQualities(decodedUrl);
+        const info = await ytdl.getInfo(req.query.url, getOptions());
+        const qualities = ytdl.filterFormats(info.formats, 'videoandaudio').map(f => ({
+            itag: f.itag, 
+            quality: f.qualityLabel || f.container, 
+            container: f.container, 
+            size: f.contentLength ? (f.contentLength / (1024 * 1024)).toFixed(2) + " MB" : "Auto"
+        }));
         res.json({ success: true, qualities });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+    } catch (error) { 
+        res.status(500).json({ success: false }); 
     }
 };
 
 /**
- * Controller to handle video streaming and download.
- * Sanitizes the filename and pipes the stream directly to the client.
+ * Streams the video download directly to the client with sanitized headers.
  */
 exports.downloadVideo = async (req, res) => {
     try {
-        let { url, itag } = req.query;
-        if (!url) {
-            return res.status(400).json({ success: false, message: "URL is required" });
-        }
-
-        const decodedUrl = decodeURIComponent(url);
-
-        // Security Check: Prevent non-YouTube streaming requests
-        if (!decodedUrl.includes("youtube.com") && !decodedUrl.includes("youtu.be")) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Security Error: Download source rejected." 
-            });
-        }
-
-        const info = await fetchVideoInfo(decodedUrl);
+        const { url, itag } = req.query;
+        const info = await ytdl.getInfo(url, getOptions());
         
-        // Filename Sanitization: Remove special characters to prevent header errors
-        const cleanTitle = info.title.replace(/[^\w\s]/gi, '');
+        // Sanitize title for content disposition header
+        const title = info.videoDetails.title.replace(/[^\x00-\x7F]/g, "") || "video";
 
-        // Set response headers for file download
-        res.setHeader("Content-Disposition", `attachment; filename="${cleanTitle}.mp4"`);
-        res.setHeader("Content-Type", "video/mp4");
+        res.setHeader('Content-Disposition', `attachment; filename="${title}.mp4"`);
+        res.setHeader('Content-Type', 'video/mp4');
 
-        const stream = downloadStream(decodedUrl, itag);
-        
-        // Critical Error Handling for live streams
-        stream.on("error", (err) => {
-            console.error("[SERVER ERROR] Stream failed:", err.message);
-            if (!res.headersSent) {
-                res.status(500).send("The download stream was interrupted.");
-            }
-        });
-
-        // Efficiently pipe the video data to the client
-        stream.pipe(res);
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        // Execute streaming with high water mark for better performance
+        ytdl(url, { 
+            ...getOptions(), 
+            quality: itag, 
+            filter: 'videoandaudio', 
+            highWaterMark: 1024 * 1024 * 64 
+        }).pipe(res);
+    } catch (error) { 
+        if (!res.headersSent) res.status(500).send("Error"); 
     }
 };

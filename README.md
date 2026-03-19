@@ -1,51 +1,46 @@
-# 📀 VEL DOWN | Luxe Video Extraction Engine
+# VEL DOWN - High Fidelity Video Archiver
 
-Vel Down is a high performance video extraction utility built with a minimalist aesthetic. It provides a seamless, secure, and ad-free environment for fetching high fidelity content, focusing on a premium user experience and clean interface design.
-
----
-
-## 💎 Project Essence
-
-This project is engineered to bridge the gap between complex backend utility and high end frontend design. Unlike traditional tools, Vel Down prioritizes visual harmony and system transparency.
+VEL DOWN is a high performance, secure web utility engineered for modern video extraction. Built with a focus on privacy and precision, it provides a seamless environment for fetching YouTube content in multiple resolutions without intrusive ads, trackers, or watermarks.
 
 ---
 
-## 🚀 Key Features
+## Core Features
 
-- **Minimalist Luxe UI**: A carefully curated interface using a premium Coffee and Gold color palette.  
-- **Dual-Theme Logic**: Integrated support for Coffee (Dark) and Beige (Light) modes with smooth variable transitions.  
-- **System Status Monitoring**: Real time operational indicators in the footer to ensure system health visibility.  
-- **High-Fidelity Extraction**: Engineered to fetch multiple resolutions (1080p, 720p, 360p) without quality degradation.  
-- **Privacy Centric**: No data logging, no intrusive trackers, and zero watermarks on extracted content.
+* **High Fidelity Extraction:** Fetch videos in various qualities including 1080p, 720p, and 480p.
+* **Secure Blob Downloads:** Background processing ensures downloads start instantly without opening unwanted browser tabs.
+* **Luxe Interface:** A minimalist, premium UI with native Tailwind CSS animations and a fully responsive layout.
+* **Privacy First:** No data logging or user tracking. Pure extraction for creators.
+* **Adaptive Theme:** Full support for high contrast Dark and Light modes.
 
 ---
 
-## 🛠️ Technical Architecture
+## Technical Architecture
 
-### Frontend Infrastructure
-- **React (Vite)**: Powering a lightning-fast Single Page Application (SPA).  
-- **Tailwind CSS**: Utilized for a professional, utility-first responsive layout.  
-- **Lucide Icons**: Implementing sharp, minimalist vector iconography.  
-- **Custom CSS Variables**: Dynamic theme switching handled via root-level CSS architecture.  
+### Frontend Layer
+* **React.js:** Component based UI architecture for scalability.
+* **Tailwind CSS:** Utility first styling with custom "Luxe" design tokens and smooth transitions.
+* **Lucide React:** Consistent and clean vector iconography.
+* **Axios:** Optimized asynchronous API communication.
 
 ### Backend Infrastructure
-- **Node.js & Express**: Providing a robust API layer for extraction requests.  
-- **yt-dlp Engine**: Professional grade extraction logic for reliable performance.  
-- **CORS Security**: Configured for secure handshakes between the Vercel frontend and Render backend.
+* **Node.js & Express:** Robust server side logic and routing.
+* **Ytdl Core:** Advanced YouTube stream handling and metadata parsing.
+* **CORS & Middleware:** Secure cross origin resource sharing and request handling.
 
 ---
 
-## 🎨 Visual Identity (Design System)
+## API Documentation
 
-| Element      | Hex Code  | Purpose                                    |
-|-------------|-----------|--------------------------------------------|
-| Coffee      | #1A120B   | Primary Background (Dark Mode)             |
-| Luxe Gold   | #D4AF37   | Primary Accents & Branding                 |
-| Beige       | #F4ECE1   | Primary Background (Light Mode)            |
-| Deep Brown  | #3C2A21   | Secondary Containers & Cards               |
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/youtube/info` | GET | Fetches video metadata and available qualities. |
+| `/api/youtube/download` | GET | Initiates the video stream for high speed download. |
 
 ---
 
-## 🛡️ Governance & Security
+## Governance and Security
 
-Vel Down operates on a strict privacy first protocol. All extraction handshakes are encrypted, ensuring that user intent remains private and the infrastructure remains secure against external trackers.
+* **Encrypted Handshake:** All internal API calls are handled via secure headers.
+* **No Watermarks:** Direct extraction from official sources ensures original quality.
+* **Sanitized Filenames:** Automatic removal of special characters for cross-OS compatibility.
+* **Zero Logging:** Privacy-centric architecture with no user data retention.

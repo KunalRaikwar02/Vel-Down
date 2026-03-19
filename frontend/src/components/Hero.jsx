@@ -1,7 +1,12 @@
 import React from 'react';
 
+/**
+ * Hero component showcasing the primary value proposition with high-impact typography.
+ * Includes a decorative background blur for the luxe aesthetic.
+ */
 export const Hero = () => (
   <div className="text-center mt-24 mb-16 relative flex flex-col items-center">
+    {/* Decorative background glow */}
     <div className="absolute inset-0 -z-10 blur-[120px] scale-150 opacity-20 bg-luxe-gold/30 rounded-full"></div>
     
     <div className="flex flex-col gap-2 md:gap-4"> 

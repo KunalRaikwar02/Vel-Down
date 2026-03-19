@@ -1,27 +1,32 @@
-const express = require("express");
-const cors = require("cors");
-const youtubeRoutes = require("./routes/youtubeRoutes");
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const youtubeRoutes = require('./routes/youtubeRoutes');
 
 const app = express();
 
-// Middleware Configuration - Updated for Deployment
+// Optimized CORS for file downloads
 app.use(cors({
-    origin: "*", // Ye har kisi ko allow karega (Testing ke liye best hai)
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    origin: true, 
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'] 
 }));
 
 app.use(express.json());
 
-// API Routes
-app.use("/api/youtube", youtubeRoutes);
+// API Routes Registration
+app.use('/api/youtube', youtubeRoutes);
 
-// Root Endpoint for Health Check
-app.get("/", (req, res) => {
-    res.send("Vel Down API Service is operational! 🚀");
+// Server Status Check
+app.get('/', (req, res) => {
+    res.send('Vel Down Backend is Running! 🚀');
 });
 
-const PORT = process.env.PORT || 10000; // Render usually uses 10000
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`[SERVER] Running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`API Endpoint: http://localhost:${PORT}/api/youtube`);
 });

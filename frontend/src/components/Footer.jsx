@@ -2,14 +2,13 @@ import React from "react";
 import { Zap, Cpu, Lock, Server } from "lucide-react";
 
 const Footer = () => {
-  // logic: hover par text-(--text-primary) ki jagah contrast color aaye
-  // Iske liye hum 'text-luxe-gold' (Beige) use karenge jab background dark ho
-  // Aur jab background light ho, tab 'hover:opacity-100' ke saath color swap logic kaam karega
+  // Styles for footer links with hover transition
   const linkStyle = "cursor-pointer transition-all duration-300 opacity-40 hover:opacity-100 hover:text-luxe-gold active:scale-95";
 
   return (
     <footer className="relative mt-20 pb-12 pt-24 border-t border-(--nav-line) overflow-hidden bg-(--bg-primary)">
-      {/* Background Aesthetic Watermark */}
+      
+      {/* Background Watermark for Aesthetic Branding */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 -z-10 opacity-[0.03] select-none pointer-events-none">
         <h1 className="anton text-[18vw] whitespace-nowrap leading-none text-(--text-primary)">
           VEL DOWN
@@ -19,7 +18,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="flex flex-col lg:flex-row justify-between items-start gap-16">
           
-          {/* Section 1: About Vel Down */}
+          {/* About Section: Service Overview */}
           <div className="flex flex-col gap-6 max-w-md">
             <div className="flex items-center gap-2 group cursor-default">
               <Zap className="text-luxe-gold fill-luxe-gold group-hover:scale-110 transition-transform" size={24} />
@@ -35,14 +34,14 @@ const Footer = () => {
                 ads and trackers.
               </p>
               <p className="text-[11px] font-bold leading-relaxed opacity-50 uppercase tracking-[0.15em] text-(--text-primary)">
-                Our infrastructure is built on privacy-first principles—ensuring 
+                Our infrastructure is built on privacy-first principles ensuring 
                 100% secure downloads with no watermarks and no data logging. 
                 Pure quality, delivered instantly for creators who value precision.
               </p>
             </div>
           </div>
 
-          {/* Section 2: Architecture & Governance */}
+          {/* Site Navigation and Governance Links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 md:gap-24">
             <div className="flex flex-col gap-5">
               <h4 className="anton text-[12px] tracking-[0.3em] uppercase text-luxe-gold">
@@ -74,7 +73,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar: Operational Status & Copyright */}
         <div className="mt-20 pt-8 border-t border-luxe-gold/5 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-3">
             <div className="relative flex h-2 w-2">
