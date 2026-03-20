@@ -26,7 +26,7 @@ app.get('/status', (req, res) => {
     res.send('Vel Down Backend is Running! 🚀');
 });
 
-app.get('(.*)', (req, res) => {
+app.get('/:any*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
