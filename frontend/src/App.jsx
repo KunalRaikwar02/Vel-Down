@@ -40,7 +40,7 @@ function App() {
 
     try {
       // Backend request for video info and available qualities
-      const res = await axios.get(`http://localhost:5000/api/youtube/info?url=${encodeURIComponent(url)}`);
+        const res = await axios.get(`/api/youtube/info?url=${encodeURIComponent(url)}`);
       
       if (res.data.success) {
         setData({
