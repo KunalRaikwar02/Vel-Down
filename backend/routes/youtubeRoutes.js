@@ -3,29 +3,32 @@ const router = express.Router();
 const { spawn } = require('child_process');
 const path = require('path');
 
-// Metadata Fetch Route
 router.get('/info', (req, res) => {
     const videoUrl = req.query.url;
     if (!videoUrl) return res.status(400).json({ success: false, error: 'URL is required' });
 
-    // RENDER PAR FIXED ABSOLUTE PATH
-    const ytDlpPath = '/opt/render/project/src/yt-dlp';
+    const ytDlpPath = path.join(process.cwd(), 'yt-dlp');
 
-    const ytDlp = spawn(ytDlpPath, ['--dump-json', '--flat-playlist', '--no-warnings', videoUrl]);
+    const ytDlp = spawn(ytDlpPath, ['--dump-json', '--flat-playlist', '--no-warnings', '--no-check-certificate', videoUrl]);
 
     let output = '';
     let errorOutput = '';
 
     ytDlp.stdout.on('data', (data) => { output += data; });
-    ytDlp.stderr.on('data', (data) => { 
-        errorOutput += data;
-        console.error("yt-dlp stderr:", data.toString()); 
-    });
+    ytDlp.stderr.on('data', (data) => { errorOutput += data; });
+
+    const timeout = setTimeout(() => {
+        ytDlp.kill();
+        if (!res.headersSent) res.status(504).json({ error: "Request timed out" });
+    }, 30000); 
 
     ytDlp.on('close', (code) => {
+        clearTimeout(timeout);
         if (code !== 0) {
-            return res.status(500).json({ success: false, error: 'Binary execution failed' });
+            console.error("yt-dlp error:", errorOutput);
+            return res.status(500).json({ success: false, error: 'Binary execute nahi ho paayi' });
         }
+
         try {
             const data = JSON.parse(output);
             const qualities = data.formats
@@ -44,19 +47,18 @@ router.get('/info', (req, res) => {
                 qualities: qualities.slice(0, 6)
             });
         } catch (e) {
-            res.status(500).json({ success: false, error: 'Parsing failed' });
+            res.status(500).json({ success: false, error: 'Data parsing failed' });
         }
     });
 });
 
-// Download Route mein bhi same path
 router.get('/download', (req, res) => {
     const videoUrl = req.query.url;
     const itag = req.query.itag;
-    const ytDlpPath = '/opt/render/project/src/yt-dlp';
+    const ytDlpPath = path.join(process.cwd(), 'yt-dlp');
 
     res.header('Content-Disposition', `attachment; filename="video.mp4"`);
-    const ytDlp = spawn(ytDlpPath, ['-f', itag, '-o', '-', videoUrl]);
+    const ytDlp = spawn(ytDlpPath, ['-f', itag, '--no-check-certificate', '-o', '-', videoUrl]);
     ytDlp.stdout.pipe(res);
 });
 
