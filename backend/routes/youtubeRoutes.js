@@ -1,32 +1,30 @@
 const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const { spawn } = require('child_process');
 const path = require('path');
 
+// Metadata Fetch Route
 router.get('/info', (req, res) => {
     const videoUrl = req.query.url;
     if (!videoUrl) return res.status(400).json({ success: false, error: 'URL is required' });
 
-    const ytDlpPath = path.join(process.cwd(), 'yt-dlp');
+    const ytDlpPath = '/opt/render/project/src/yt-dlp';
 
-    const ytDlp = spawn(ytDlpPath, ['--dump-json', '--flat-playlist', '--no-warnings', '--no-check-certificate', videoUrl]);
+    const ytDlp = spawn(ytDlpPath, ['--dump-json', videoUrl]);
 
     let output = '';
     let errorOutput = '';
 
     ytDlp.stdout.on('data', (data) => { output += data; });
-    ytDlp.stderr.on('data', (data) => { errorOutput += data; });
-
-    const timeout = setTimeout(() => {
-        ytDlp.kill();
-        if (!res.headersSent) res.status(504).json({ error: "Request timed out" });
-    }, 30000); 
+    ytDlp.stderr.on('data', (data) => { 
+        errorOutput += data;
+        console.error("Binary Error Log:", data.toString()); 
+    });
 
     ytDlp.on('close', (code) => {
-        clearTimeout(timeout);
         if (code !== 0) {
-            console.error("yt-dlp error:", errorOutput);
-            return res.status(500).json({ success: false, error: 'Binary execute nahi ho paayi' });
+            console.error("yt-dlp process exited with code:", code);
+            return res.status(500).json({ success: false, error: 'Video fetch failed' });
         }
 
         try {
@@ -43,23 +41,37 @@ router.get('/info', (req, res) => {
 
             res.json({
                 success: true,
-                video: { title: data.title, thumbnail: data.thumbnail, author: data.uploader },
+                video: { 
+                    title: data.title, 
+                    thumbnail: data.thumbnail, 
+                    author: data.uploader 
+                },
                 qualities: qualities.slice(0, 6)
             });
         } catch (e) {
+            console.error("JSON Parsing Error:", e);
             res.status(500).json({ success: false, error: 'Data parsing failed' });
         }
     });
 });
 
+// Download Route
 router.get('/download', (req, res) => {
     const videoUrl = req.query.url;
     const itag = req.query.itag;
-    const ytDlpPath = path.join(process.cwd(), 'yt-dlp');
+    const ytDlpPath = '/opt/render/project/src/yt-dlp';
 
-    res.header('Content-Disposition', `attachment; filename="video.mp4"`);
-    const ytDlp = spawn(ytDlpPath, ['-f', itag, '--no-check-certificate', '-o', '-', videoUrl]);
+    if (!videoUrl || !itag) return res.status(400).send('Missing params');
+
+    res.header('Content-Disposition', `attachment; filename="VelDown_Video.mp4"`);
+    res.header('Content-Type', 'video/mp4');
+
+    const ytDlp = spawn(ytDlpPath, ['-f', itag, '-o', '-', videoUrl]);
     ytDlp.stdout.pipe(res);
+
+    ytDlp.on('error', (err) => {
+        console.error("Download stream error:", err);
+    });
 });
 
 module.exports = router;
