@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // 1. Path module add kiya static files ke liye
 require('dotenv').config();
 const youtubeRoutes = require('./routes/youtubeRoutes');
 
@@ -16,12 +17,20 @@ app.use(cors({
 
 app.use(express.json());
 
+// 2. Static files (CSS, JS, Images) serve karne ke liye
+app.use(express.static(path.join(__dirname, 'public')));
+
 // API Routes Registration
 app.use('/api/youtube', youtubeRoutes);
 
-// Server Status Check
-app.get('/', (req, res) => {
+// 3. Status check ko /status par move kiya taaki root '/' par frontend dikhe
+app.get('/status', (req, res) => {
     res.send('Vel Down Backend is Running! 🚀');
+});
+
+// 4. Catch-all route: Ye aapka Frontend (index.html) load karega
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
