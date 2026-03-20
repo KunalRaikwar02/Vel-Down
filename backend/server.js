@@ -1,38 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+const dotenv = require('dotenv');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 
+dotenv.config();
 const app = express();
 
-// Optimized CORS for file downloads
-app.use(cors({
-    origin: true, 
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'] 
-}));
-
+app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes Registration
+// API routes
 app.use('/api/youtube', youtubeRoutes);
 
+// Status route
 app.get('/status', (req, res) => {
     res.send('Vel Down Backend is Running! 🚀');
 });
 
-app.get('/:any*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`API Endpoint: http://localhost:${PORT}/api/youtube`);
-});
+app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
