@@ -3,13 +3,13 @@ const router = express.Router();
 const { spawn } = require('child_process');
 const path = require('path');
 
+// Metadata Fetch Route
 router.get('/info', (req, res) => {
     const videoUrl = req.query.url;
     if (!videoUrl) return res.status(400).json({ success: false, error: 'URL is required' });
 
-    // AGAR BUILD COMMAND MEIN ./backend/yt-dlp HAI:
-    // Toh raasta ye hoga (kyunki routes folder backend ke andar hota hai)
-    const ytDlpPath = path.join(__dirname, '../yt-dlp');
+    // RENDER PAR FIXED ABSOLUTE PATH
+    const ytDlpPath = '/opt/render/project/src/yt-dlp';
 
     const ytDlp = spawn(ytDlpPath, ['--dump-json', '--flat-playlist', '--no-warnings', videoUrl]);
 
@@ -17,14 +17,15 @@ router.get('/info', (req, res) => {
     let errorOutput = '';
 
     ytDlp.stdout.on('data', (data) => { output += data; });
-    ytDlp.stderr.on('data', (data) => { errorOutput += data; });
+    ytDlp.stderr.on('data', (data) => { 
+        errorOutput += data;
+        console.error("yt-dlp stderr:", data.toString()); 
+    });
 
     ytDlp.on('close', (code) => {
         if (code !== 0) {
-            console.error("Bhai yt-dlp error:", errorOutput);
-            return res.status(500).json({ success: false, error: 'Video fetch failed' });
+            return res.status(500).json({ success: false, error: 'Binary execution failed' });
         }
-
         try {
             const data = JSON.parse(output);
             const qualities = data.formats
@@ -43,28 +44,20 @@ router.get('/info', (req, res) => {
                 qualities: qualities.slice(0, 6)
             });
         } catch (e) {
-            console.error("Parsing error:", e);
-            res.status(500).json({ success: false, error: 'Parsing error' });
+            res.status(500).json({ success: false, error: 'Parsing failed' });
         }
     });
 });
 
+// Download Route mein bhi same path
 router.get('/download', (req, res) => {
     const videoUrl = req.query.url;
     const itag = req.query.itag;
-    const ytDlpPath = path.join(__dirname, '../yt-dlp');
+    const ytDlpPath = '/opt/render/project/src/yt-dlp';
 
-    if (!videoUrl || !itag) return res.status(400).send('Missing parameters');
-
-    res.header('Content-Disposition', `attachment; filename="VelDown_Video.mp4"`);
-    res.header('Content-Type', 'video/mp4');
-
-    const ytDlp = spawn(ytDlpPath, ['-f', itag, '--no-warnings', '-o', '-', videoUrl]);
+    res.header('Content-Disposition', `attachment; filename="video.mp4"`);
+    const ytDlp = spawn(ytDlpPath, ['-f', itag, '-o', '-', videoUrl]);
     ytDlp.stdout.pipe(res);
-    
-    ytDlp.on('error', (err) => {
-        console.error("Streaming error:", err);
-    });
 });
 
 module.exports = router;
