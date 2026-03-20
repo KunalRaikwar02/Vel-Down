@@ -9,6 +9,7 @@ const app = express();
 // Middleware configuration
 app.use(cors()); 
 app.use(express.json());
+app.use(express.static('./public'));
 
 // Main API Routes
 app.use('/api/youtube', youtubeRoutes);
