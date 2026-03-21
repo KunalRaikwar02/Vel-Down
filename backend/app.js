@@ -1,19 +1,20 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const dotenv = require('dotenv');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 
-dotenv.config();
 const app = express();
 
-// Middleware configuration
-app.use(cors()); 
-app.use(express.json());
-app.use(express.static('./public'));
+app.use(cors({
+    origin: '*',
+    exposedHeaders: ['Content-Disposition']
+}));
 
-// Main API Routes
+app.use(express.json());
+
+// Main Routes
 app.use('/api/youtube', youtubeRoutes);
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
+// Health Check
+app.get('/', (req, res) => res.send("VelDown API Status: Online 🚀"));
+
+module.exports = app;

@@ -5,6 +5,8 @@ node_modules/
 .env
 cookies.txt
 cookies.json
+.cache/            
+youtube-oauth2.json 
 
 # Logs and Junk
 npm-debug.log*

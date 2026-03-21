@@ -27,36 +27,24 @@ function App() {
    * Triggers video metadata extraction from the backend.
    * Handles validation and error states for the search flow.
    */
-  const onFetch = async () => {
-    if (!url.trim()) {
-      setErrorMsg("ENTER URL FIRST");
-      setTimeout(() => setErrorMsg(''), 3000);
-      return;
-    }
-
+const onFetch = async () => {
     setLoading(true);
-    setErrorMsg('');
     setData(null);
-
     try {
-      // Backend request for video info and available qualities
-        const res = await axios.get(`/api/youtube/info?url=${encodeURIComponent(url)}`);
-      
-      if (res.data.success) {
-        setData({
-          video: res.data.video,
-          qualities: res.data.qualities || []
+        const res = await axios.get(`http://localhost:5000/api/youtube/info`, {
+            params: { url: url }
         });
-        setShowModal(true);
-      } else {
-        setErrorMsg("VIDEO NOT FOUND");
-      }
+        if (res.data.success) {
+            setData(res.data); 
+            setShowModal(true);
+        }
     } catch (err) {
-      setErrorMsg("SERVER OFFLINE");
+        console.error("Frontend Error:", err);
+        alert("YouTube is blocking this request. Try updating cookies.txt");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   return (
     <div className="min-h-screen selection:bg-luxe-gold selection:text-black bg-(--bg-primary) text-(--text-primary) transition-colors duration-500 overflow-x-hidden">
@@ -73,7 +61,7 @@ function App() {
         />
       </main>
 
-      {/* --- Overlay Modal Logic --- */}
+      {/* Overlay Modal Logic */}
       {showModal && data && (
         <div className="fixed inset-0 z-2000 flex items-center justify-center p-4 md:p-6">
           {/* Backdrop Blur & Exit Trigger */}
@@ -96,7 +84,7 @@ function App() {
 
       <Footer />
 
-      {/* Aesthetic Background Elements */}
+      {/* Background Elements */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-luxe-gold/5 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-luxe-gold/5 blur-[120px] rounded-full"></div>

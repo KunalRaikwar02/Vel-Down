@@ -14,44 +14,36 @@ export const ResultCard = ({ videoData, qualities, url, onClose }) => {
     setStatus('processing');
 
     try {
-      const downloadUrl = `http://localhost:5000/api/youtube/download?url=${encodeURIComponent(url)}&itag=${itag}`;
-      
-      const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error('Download failed');
+        const downloadUrl = `http://localhost:5000/api/youtube/download?url=${encodeURIComponent(url)}&itag=${itag}`;
+        
+        const response = await fetch(downloadUrl);
+        if (!response.ok) throw new Error('Download failed');
 
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      
-      // Sanitize title for file compatibility
-      const fileName = videoData.title.replace(/[^\w\s]/gi, '').substring(0, 30);
-      a.download = `VelDown_${fileName}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Memory cleanup
-      window.URL.revokeObjectURL(blobUrl);
-      document.body.removeChild(a);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        
+        // Title sanitize logic sahi hai tumhari
+        const fileName = videoData.title.replace(/[^\w\s]/gi, '').substring(0, 30);
+        a.download = `VelDown_${fileName}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
 
-      setStatus('success');
-      
-      // Reset state after UI feedback duration
-      setTimeout(() => {
-        setStatus('idle');
-        setActiveItag(null);
-      }, 4000);
+        setStatus('success');
+        // 4 sec baad reset
+        setTimeout(() => { setStatus('idle'); setActiveItag(null); }, 4000);
 
     } catch (err) {
-      console.error("Download Error:", err);
-      setStatus('error');
-      setTimeout(() => {
-        setStatus('idle');
-        setActiveItag(null);
-      }, 3000);
+        console.error("Download Error:", err);
+        setStatus('error');
+        setTimeout(() => { setStatus('idle'); setActiveItag(null); }, 3000);
     }
-  };
+};
 
   if (!videoData) return null;
 

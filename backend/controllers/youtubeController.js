@@ -1,77 +1,100 @@
-const ytdl = require("@distube/ytdl-core");
-require('dotenv').config();
+const ytDl = require('yt-dlp-exec');
+
+// Standard resolutions mapping
+const resolutionMap = {
+    '1920': '1080p',
+    '1280': '720p',
+    '854': '480p',
+    '640': '360p',
+    '426': '240p',
+    '256': '144p'
+};
 
 /**
- * Fetch YouTube request options including cookies and user agent from environment variables.
- */
-const getOptions = () => ({
-    requestOptions: {
-        headers: {
-            'cookie': process.env.YT_COOKIE,
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        }
-    }
-});
-
-/**
- * Retrieves basic video information: title, thumbnail, and author name.
+ * GET VIDEO INFO (With OAuth2 Bypass & Clean Resolutions)
  */
 exports.getVideoInfo = async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ success: false, message: "URL is required" });
+
     try {
-        const info = await ytdl.getInfo(req.query.url, getOptions());
-        res.json({ 
-            success: true, 
-            data: { 
-                title: info.videoDetails.title, 
-                thumbnail: info.videoDetails.thumbnails.pop().url, 
-                author: info.videoDetails.author.name 
-            } 
+        console.log("🔑 Authenticating via OAuth2 for:", url);
+        
+        const data = await ytDl(url, {
+            dumpJson: true,
+            noCheckCertificates: true,
+            noPlaylist: true,
+            extractorArgs: 'youtube:oauth2', 
+            youtubeSkipDashManifest: false, 
         });
-    } catch (error) { 
-        res.status(500).json({ success: false }); 
+
+        const allQualities = (data.formats || [])
+            .filter(f => f.vcodec !== 'none' && (f.height || f.width))
+            .map(f => {
+                
+                let qLabel = f.height ? f.height + 'p' : 'Auto';
+
+                if (f.width && resolutionMap[f.width]) {
+                    qLabel = resolutionMap[f.width];
+                }
+
+                return {
+                    itag: f.format_id,
+                    quality: qLabel,
+                    size: f.filesize ? (f.filesize / (1024 * 1024)).toFixed(1) + ' MB' : 'High Speed',
+                    container: f.ext || 'mp4'
+                };
+            })
+   
+            .filter((v, i, a) => a.findIndex(t => t.quality === v.quality) === i)
+    
+            .sort((a, b) => parseInt(b.quality) - parseInt(a.quality));
+
+        res.json({
+            success: true,
+            video: { 
+                title: data.title, 
+                thumbnail: data.thumbnail,
+                duration: data.duration_string,
+                uploader: data.uploader
+            },
+            qualities: allQualities.slice(0, 6) 
+        });
+
+    } catch (e) {
+        console.error("❌ OAuth/Info Error:", e.message);
+        res.status(500).json({ success: false, error: "Auth required or YouTube block. Check Terminal!" });
     }
 };
 
 /**
- * Filters and retrieves available video+audio formats with metadata like itag, quality, and size.
- */
-exports.getQualities = async (req, res) => {
-    try {
-        const info = await ytdl.getInfo(req.query.url, getOptions());
-        const qualities = ytdl.filterFormats(info.formats, 'videoandaudio').map(f => ({
-            itag: f.itag, 
-            quality: f.qualityLabel || f.container, 
-            container: f.container, 
-            size: f.contentLength ? (f.contentLength / (1024 * 1024)).toFixed(2) + " MB" : "Auto"
-        }));
-        res.json({ success: true, qualities });
-    } catch (error) { 
-        res.status(500).json({ success: false }); 
-    }
-};
-
-/**
- * Streams the video download directly to the client with sanitized headers.
+ * DOWNLOAD VIDEO
  */
 exports.downloadVideo = async (req, res) => {
+    const { url, itag } = req.query;
     try {
-        const { url, itag } = req.query;
-        const info = await ytdl.getInfo(url, getOptions());
-        
-        // Sanitize title for content disposition header
-        const title = info.videoDetails.title.replace(/[^\x00-\x7F]/g, "") || "video";
+        console.log(`📥 Streaming itag ${itag} via OAuth2...`);
 
-        res.setHeader('Content-Disposition', `attachment; filename="${title}.mp4"`);
+        res.setHeader('Content-Disposition', `attachment; filename="VelDown_${Date.now()}.mp4"`);
         res.setHeader('Content-Type', 'video/mp4');
 
-        // Execute streaming with high water mark for better performance
-        ytdl(url, { 
-            ...getOptions(), 
-            quality: itag, 
-            filter: 'videoandaudio', 
-            highWaterMark: 1024 * 1024 * 64 
-        }).pipe(res);
-    } catch (error) { 
-        if (!res.headersSent) res.status(500).send("Error"); 
+        const subprocess = ytDl.exec(url, {
+ 
+            format: itag ? `${itag}+bestaudio[ext=m4a]/best` : 'bestvideo+bestaudio/best',
+            output: '-',
+            noCheckCertificates: true,
+            extractorArgs: 'youtube:oauth2',
+        });
+
+        subprocess.stdout.pipe(res);
+
+        req.on('close', () => {
+            console.log("⚠️ Connection closed by client.");
+            subprocess.kill();
+        });
+
+    } catch (e) {
+        console.error("❌ Download Error:", e.message);
+        if (!res.headersSent) res.status(500).send("Download failed.");
     }
 };
