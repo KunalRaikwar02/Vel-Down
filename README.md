@@ -1,46 +1,35 @@
-# VEL DOWN - High Fidelity Video Archiver
+# Vel Down 
 
-VEL DOWN is a high performance, secure web utility engineered for modern video extraction. Built with a focus on privacy and precision, it provides a seamless environment for fetching YouTube content in multiple resolutions without intrusive ads, trackers, or watermarks.
+Vel Down is a high-performance YouTube extraction tool that delivers a fast, clean, and reliable download experience without interruptions such as bot verification prompts.
 
----
+## ✨ Overview
 
-## Core Features
+Modern YouTube downloaders often fail due to aggressive bot detection systems. Vel Down addresses this by implementing a more robust, authenticated extraction flow to ensure stability and performance.
 
-* **High Fidelity Extraction:** Fetch videos in various qualities including 1080p, 720p, and 480p.
-* **Secure Blob Downloads:** Background processing ensures downloads start instantly without opening unwanted browser tabs.
-* **Luxe Interface:** A minimalist, premium UI with native Tailwind CSS animations and a fully responsive layout.
-* **Privacy First:** No data logging or user tracking. Pure extraction for creators.
-* **Adaptive Theme:** Full support for high contrast Dark and Light modes.
+## 🛠 Tech Stack
 
----
+**Frontend:** React.js, Tailwind CSS, Lucide Icons
+**Backend:** Node.js, Express.js
+**Core Engine:** yt-dlp-exec
 
-## Technical Architecture
+## ⚙️ Key Features
 
-### Frontend Layer
-* **React.js:** Component based UI architecture for scalability.
-* **Tailwind CSS:** Utility first styling with custom "Luxe" design tokens and smooth transitions.
-* **Lucide React:** Consistent and clean vector iconography.
-* **Axios:** Optimized asynchronous API communication.
+* 🔐 OAuth2 Device Code Flow authentication
+* ⚡ Zero-storage streaming using Node.js subprocess pipelines
+* 🎯 Clean resolution mapping (1080p, 720p, 480p)
+* 🚫 No popups or intrusive redirects
+* 🎨 Premium dark UI (Dark Academia inspired)
 
-### Backend Infrastructure
-* **Node.js & Express:** Robust server side logic and routing.
-* **Ytdl Core:** Advanced YouTube stream handling and metadata parsing.
-* **CORS & Middleware:** Secure cross origin resource sharing and request handling.
+## 🧠 How It Works
 
----
+1. User submits a YouTube URL
+2. Backend authenticates request using OAuth2 Device Flow
+3. yt-dlp-exec fetches metadata and stream
+4. Node.js pipes the stream directly to the client
+5. Frontend handles download via Blob URL API
 
-## API Documentation
+## 🔮 Future Improvements
 
-| Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/api/youtube/info` | GET | Fetches video metadata and available qualities. |
-| `/api/youtube/download` | GET | Initiates the video stream for high speed download. |
-
----
-
-## Governance and Security
-
-* **Encrypted Handshake:** All internal API calls are handled via secure headers.
-* **No Watermarks:** Direct extraction from official sources ensures original quality.
-* **Sanitized Filenames:** Automatic removal of special characters for cross-OS compatibility.
-* **Zero Logging:** Privacy-centric architecture with no user data retention.
+* Add playlist download support
+* Improve mobile responsiveness
+* Add format selection (MP3, MP4)
